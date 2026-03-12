@@ -150,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Column(
                             children: [
                               const Text(
-                                'MX Player Pro',
+                                'FlexX Player',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 28,
@@ -226,7 +226,7 @@ class _SplashScreenState extends State<SplashScreen>
       ),
       child: const Center(
         child: Text(
-          'MX',
+          'FX',
           style: TextStyle(
             color: Colors.white,
             fontSize: 36,

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+pimport 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -56,7 +56,7 @@ class MXPlayerApp extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
 
     return GetMaterialApp(
-      title: 'MX Player Pro',
+      title: 'FlexX Player',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
