@@ -30,27 +30,85 @@ jobs:
       - name: Create Fresh Flutter Project
         run: |
           flutter create --org com.mxplayer --project-name mx_player_pro fresh_app
-          
+
       - name: Copy Our Source Files
         run: |
-          cp pubspec.yaml fresh_app/pubspec.yaml
           rm -rf fresh_app/lib
           cp -r lib fresh_app/lib
           mkdir -p fresh_app/assets/images
           mkdir -p fresh_app/assets/icons
           mkdir -p fresh_app/assets/animations
 
+      - name: Set Minimal pubspec
+        working-directory: fresh_app
+        run: |
+          cat > pubspec.yaml << 'PUBSPEC'
+name: mx_player_pro
+description: MX Player Clone
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  video_player: ^2.8.2
+  chewie: ^1.7.4
+  permission_handler: ^11.1.0
+  path_provider: ^2.1.2
+  path: ^1.9.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.2.2
+  shimmer: ^3.0.0
+  google_fonts: ^6.1.0
+  provider: ^6.1.1
+  get: ^4.6.6
+  share_plus: ^7.2.2
+  wakelock_plus: ^1.1.4
+  cached_network_image: ^3.3.1
+  lottie: ^2.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+PUBSPEC
+
       - name: Get Dependencies
         working-directory: fresh_app
         run: flutter pub get
 
+      - name: Enable Multidex
+        working-directory: fresh_app
+        run: |
+          flutter build apk --debug --target-platform android-arm,android-arm64 || true
+          # Enable multidex in build.gradle
+          sed -i 's/minSdkVersion flutter.minSdkVersion/minSdkVersion 21/' android/app/build.gradle || true
+          # Add multidex dependency
+          sed -i '/dependencies {/a\    implementation "androidx.multidex:multidex:2.0.1"' android/app/build.gradle || true
+
       - name: Build Debug APK
         working-directory: fresh_app
-        run: flutter build apk --debug --target-platform android-arm,android-arm64
+        run: |
+          flutter build apk \
+            --debug \
+            --target-platform android-arm,android-arm64
 
       - name: Build Release APK
         working-directory: fresh_app
-        run: flutter build apk --release --target-platform android-arm,android-arm64
+        run: |
+          flutter build apk \
+            --release \
+            --target-platform android-arm,android-arm64
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
