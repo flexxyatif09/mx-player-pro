@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../utils/app_theme.dart';
 
 class MXBottomNavBar extends StatelessWidget {
@@ -31,36 +30,11 @@ class MXBottomNavBar extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _NavItem(
-                icon: FontAwesomeIcons.film,
-                label: 'Videos',
-                isSelected: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-              _NavItem(
-                icon: FontAwesomeIcons.music,
-                label: 'Audio',
-                isSelected: currentIndex == 1,
-                onTap: () => onTap(1),
-              ),
-              _NavItem(
-                icon: FontAwesomeIcons.folder,
-                label: 'Files',
-                isSelected: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              _NavItem(
-                icon: FontAwesomeIcons.wifi,
-                label: 'Stream',
-                isSelected: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-              _NavItem(
-                icon: FontAwesomeIcons.ellipsisH,
-                label: 'More',
-                isSelected: currentIndex == 4,
-                onTap: () => onTap(4),
-              ),
+              _NavItem(icon: Icons.movie_outlined, label: 'Videos', isSelected: currentIndex == 0, onTap: () => onTap(0)),
+              _NavItem(icon: Icons.music_note_outlined, label: 'Audio', isSelected: currentIndex == 1, onTap: () => onTap(1)),
+              _NavItem(icon: Icons.folder_outlined, label: 'Files', isSelected: currentIndex == 2, onTap: () => onTap(2)),
+              _NavItem(icon: Icons.wifi_outlined, label: 'Stream', isSelected: currentIndex == 3, onTap: () => onTap(3)),
+              _NavItem(icon: Icons.more_horiz, label: 'More', isSelected: currentIndex == 4, onTap: () => onTap(4)),
             ],
           ),
         ),
@@ -91,28 +65,21 @@ class _NavItem extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppTheme.primaryColor.withOpacity(0.15)
-              : Colors.transparent,
+          color: isSelected ? AppTheme.primaryColor.withOpacity(0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            FaIcon(
-              icon,
-              size: 18,
-              color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
-            ),
+            Icon(icon, size: 20, color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary),
             const SizedBox(height: 4),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
+            Text(
+              label,
               style: TextStyle(
                 color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
               ),
-              child: Text(label),
             ),
           ],
         ),

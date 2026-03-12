@@ -49,22 +49,17 @@ class PlayerControls extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Top bar
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: _buildTopBar(context),
           ),
-
-          // Center controls
           Center(
             child: isLocked
                 ? _buildLockedControls()
                 : _buildCenterControls(),
           ),
-
-          // Bottom bar
           if (!isLocked)
             Positioned(
               bottom: 0,
@@ -110,32 +105,28 @@ class PlayerControls extends StatelessWidget {
               ],
             ),
           ),
-          // Top action buttons
-          _buildTopAction(Icons.subtitles_outlined, 'Subtitle'),
-          _buildTopAction(Icons.audiotrack_outlined, 'Audio'),
-          _buildTopAction(Icons.speed, 'Speed'),
+          IconButton(
+            icon: const Icon(Icons.subtitles_outlined, color: Colors.white, size: 20),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.audiotrack_outlined, color: Colors.white, size: 20),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.speed, color: Colors.white, size: 20),
+            onPressed: () {},
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white, size: 22),
             color: AppTheme.darkCard,
             itemBuilder: (_) => [
               _menuItem(Icons.info_outline, 'Media Info'),
-              _menuItem(Icons.screenshot_monitor, 'Screenshot'),
               _menuItem(Icons.share, 'Share'),
-              _menuItem(Icons.equalizer, 'Equalizer'),
               _menuItem(Icons.timer_outlined, 'Sleep Timer'),
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTopAction(IconData icon, String tooltip) {
-    return Tooltip(
-      message: tooltip,
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 20),
-        onPressed: () {},
       ),
     );
   }
@@ -146,7 +137,8 @@ class PlayerControls extends StatelessWidget {
         children: [
           Icon(icon, color: AppTheme.textSecondary, size: 18),
           const SizedBox(width: 12),
-          Text(title, style: const TextStyle(color: Colors.white, fontSize: 13)),
+          Text(title,
+              style: const TextStyle(color: Colors.white, fontSize: 13)),
         ],
       ),
     );
@@ -170,28 +162,24 @@ class PlayerControls extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Previous
         _buildControlButton(
           icon: Icons.skip_previous,
           size: 32,
           onPressed: onPrevious,
         ),
         const SizedBox(width: 16),
-
-        // Rewind 10s
         _buildControlButton(
           icon: Icons.replay_10,
           size: 36,
           onPressed: () {
             final pos = controller.value.position;
+            final newPos = pos - const Duration(seconds: 10);
             controller.seekTo(
-                (pos - const Duration(seconds: 10))
-                    .clamp(Duration.zero, controller.value.duration));
+              newPos < Duration.zero ? Duration.zero : newPos,
+            );
           },
         ),
         const SizedBox(width: 16),
-
-        // Play/Pause
         GestureDetector(
           onTap: onPlayPause,
           child: Container(
@@ -200,7 +188,8 @@ class PlayerControls extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.15),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+              border: Border.all(
+                  color: Colors.white.withOpacity(0.3), width: 2),
             ),
             child: Icon(
               controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
@@ -210,21 +199,17 @@ class PlayerControls extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 16),
-
-        // Forward 10s
         _buildControlButton(
           icon: Icons.forward_10,
           size: 36,
           onPressed: () {
             final pos = controller.value.position;
-            controller.seekTo(
-                (pos + const Duration(seconds: 10))
-                    .clamp(Duration.zero, controller.value.duration));
+            final dur = controller.value.duration;
+            final newPos = pos + const Duration(seconds: 10);
+            controller.seekTo(newPos > dur ? dur : newPos);
           },
         ),
         const SizedBox(width: 16),
-
-        // Next
         _buildControlButton(
           icon: Icons.skip_next,
           size: 32,
@@ -254,32 +239,27 @@ class PlayerControls extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Progress bar
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               trackHeight: 3,
-              thumbRadius: 8,
               thumbColor: AppTheme.primaryColor,
               activeTrackColor: AppTheme.primaryColor,
               inactiveTrackColor: Colors.white24,
-              overlayRadius: 14,
               overlayColor: AppTheme.primaryColor.withOpacity(0.2),
             ),
             child: Slider(
               value: duration.inMilliseconds > 0
-                  ? (position.inMilliseconds /
-                      duration.inMilliseconds)
+                  ? (position.inMilliseconds / duration.inMilliseconds)
                       .clamp(0.0, 1.0)
                   : 0.0,
               onChanged: (value) {
                 onSeek(Duration(
-                  milliseconds: (value * duration.inMilliseconds).round(),
+                  milliseconds:
+                      (value * duration.inMilliseconds).round(),
                 ));
               },
             ),
           ),
-
-          // Time row
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
@@ -293,8 +273,6 @@ class PlayerControls extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-
-                // Bottom action icons
                 Row(
                   children: [
                     IconButton(
@@ -309,7 +287,8 @@ class PlayerControls extends StatelessWidget {
                     ),
                     const SizedBox(width: 16),
                     IconButton(
-                      icon: const Icon(Icons.loop, color: Colors.white70, size: 18),
+                      icon: const Icon(Icons.loop,
+                          color: Colors.white70, size: 18),
                       onPressed: () {},
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -317,7 +296,9 @@ class PlayerControls extends StatelessWidget {
                     const SizedBox(width: 16),
                     IconButton(
                       icon: Icon(
-                        isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                        isFullscreen
+                            ? Icons.fullscreen_exit
+                            : Icons.fullscreen,
                         color: Colors.white70,
                         size: 20,
                       ),
@@ -327,7 +308,6 @@ class PlayerControls extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 Text(
                   _formatDuration(duration),
                   style: const TextStyle(
@@ -345,8 +325,10 @@ class PlayerControls extends StatelessWidget {
 
   String _formatDuration(Duration d) {
     final hours = d.inHours;
-    final minutes = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes =
+        d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds =
+        d.inSeconds.remainder(60).toString().padLeft(2, '0');
     if (hours > 0) return '$hours:$minutes:$seconds';
     return '$minutes:$seconds';
   }

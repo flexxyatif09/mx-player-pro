@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import '../utils/app_theme.dart';
 
 // ─────────────── AUDIO SCREEN ───────────────
@@ -21,7 +21,7 @@ class AudioScreen extends StatelessWidget {
         children: [
           _SectionHeader(title: 'Songs', count: 0),
           const _EmptyState(
-            icon: FontAwesomeIcons.music,
+            icon: Icons.music_note,
             message: 'No audio files found',
             subtitle: 'Music on your device will appear here',
           ),
@@ -90,7 +90,7 @@ class StreamScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           const _EmptyState(
-            icon: FontAwesomeIcons.wifi,
+            icon: Icons.wifi,
             message: 'No recent streams',
             subtitle: 'Your streamed URLs will appear here',
           ),

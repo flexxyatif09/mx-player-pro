@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 
 import '../providers/media_provider.dart';
 import '../models/video_model.dart';
@@ -252,7 +252,7 @@ class _VideosScreenState extends State<VideosScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            FontAwesomeIcons.film,
+            Icons.video_library,
             size: 60,
             color: AppTheme.textSecondary.withOpacity(0.3),
           ),

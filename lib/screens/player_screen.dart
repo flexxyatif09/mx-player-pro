@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
-import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:io';
 
 import '../models/video_model.dart';
-import '../providers/player_provider.dart';
 import '../utils/app_theme.dart';
 import '../widgets/player_controls.dart';
 import '../widgets/player_gestures.dart';
@@ -27,8 +25,7 @@ class PlayerScreen extends StatefulWidget {
   State<PlayerScreen> createState() => _PlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen>
-    with TickerProviderStateMixin {
+class _PlayerScreenState extends State<PlayerScreen> with TickerProviderStateMixin {
   late VideoPlayerController _controller;
   late AnimationController _controlsController;
   late Animation<double> _controlsOpacity;
@@ -39,7 +36,6 @@ class _PlayerScreenState extends State<PlayerScreen>
   Timer? _hideTimer;
   int _currentIndex = 0;
 
-  // Gesture values
   double _brightness = 0.5;
   double _volume = 0.5;
   bool _showBrightnessOverlay = false;
@@ -58,6 +54,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _controlsOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controlsController, curve: Curves.easeInOut),
     );
+    _controller = VideoPlayerController.file(File(widget.video.path));
     _initPlayer(widget.video);
     _enterFullscreen();
     _startHideTimer();
@@ -82,18 +79,23 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Future<void> _initPlayer(VideoModel video) async {
-    if (_controller.value.isInitialized) {
-      await _controller.dispose();
+    try {
+      if (_controller.value.isInitialized) {
+        await _controller.dispose();
+      }
+      _controller = VideoPlayerController.file(File(video.path));
+      await _controller.initialize();
+      await _controller.play();
+      _controller.addListener(_onVideoUpdate);
+      if (mounted) setState(() {});
+    } catch (e) {
+      debugPrint('Player error: $e');
     }
-    _controller = VideoPlayerController.file(File(video.path));
-    await _controller.initialize();
-    await _controller.play();
-    setState(() {});
-    _controller.addListener(_onVideoUpdate);
   }
 
   void _onVideoUpdate() {
-    if (_controller.value.position >= _controller.value.duration) {
+    if (_controller.value.position >= _controller.value.duration &&
+        _controller.value.duration > Duration.zero) {
       _playNext();
     }
     if (mounted) setState(() {});
@@ -134,14 +136,18 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
   }
 
-  void _onTap() {
-    if (_isLocked) return;
-    _toggleControls();
-  }
-
   void _seekRelative(int seconds) {
-    final newPos = _controller.value.position + Duration(seconds: seconds);
-    _controller.seekTo(newPos.clamp(Duration.zero, _controller.value.duration));
+    final pos = _controller.value.position;
+    final dur = _controller.value.duration;
+    Duration newPos;
+    if (seconds > 0) {
+      newPos = pos + Duration(seconds: seconds);
+      if (newPos > dur) newPos = dur;
+    } else {
+      newPos = pos + Duration(seconds: seconds);
+      if (newPos < Duration.zero) newPos = Duration.zero;
+    }
+    _controller.seekTo(newPos);
     setState(() {
       _seekSeconds = seconds;
       _showSeekOverlay = true;
@@ -166,88 +172,64 @@ class _PlayerScreenState extends State<PlayerScreen>
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
-        onTap: _onTap,
+        onTap: () {
+          if (!_isLocked) _toggleControls();
+        },
         child: Stack(
           children: [
-            // Video
             _buildVideoPlayer(),
-
-            // Player Gestures overlay
             PlayerGestures(
-              onBrightnessChanged: (v) =>
-                  setState(() {
-                    _brightness = v;
-                    _showBrightnessOverlay = true;
-                  }),
-              onVolumeChanged: (v) =>
-                  setState(() {
-                    _volume = v;
-                    _showVolumeOverlay = true;
-                  }),
+              onBrightnessChanged: (v) => setState(() {
+                _brightness = v;
+                _showBrightnessOverlay = true;
+              }),
+              onVolumeChanged: (v) => setState(() {
+                _volume = v;
+                _showVolumeOverlay = true;
+              }),
               onSeek: _seekRelative,
               onHideOverlays: () => setState(() {
                 _showBrightnessOverlay = false;
                 _showVolumeOverlay = false;
               }),
             ),
-
-            // Controls overlay
-            AnimatedBuilder(
-              animation: _controlsOpacity,
-              builder: (context, child) {
-                return _showControls
-                    ? Opacity(
-                        opacity: _controlsOpacity.value,
-                        child: PlayerControls(
-                          controller: _controller,
-                          video: widget.playlist[_currentIndex],
-                          isLocked: _isLocked,
-                          isFullscreen: _isFullscreen,
-                          onPlayPause: () {
-                            _controller.value.isPlaying
-                                ? _controller.pause()
-                                : _controller.play();
-                            _startHideTimer();
-                            setState(() {});
-                          },
-                          onNext: _playNext,
-                          onPrevious: _playPrevious,
-                          onBack: () => Navigator.pop(context),
-                          onLock: () => setState(() => _isLocked = !_isLocked),
-                          onFullscreen: () => setState(
-                              () => _isFullscreen = !_isFullscreen),
-                          onSeek: (pos) {
-                            _controller.seekTo(pos);
-                            _startHideTimer();
-                          },
-                        ),
-                      )
-                    : const SizedBox();
-              },
-            ),
-
-            // Brightness overlay
+            if (_showControls)
+              AnimatedBuilder(
+                animation: _controlsOpacity,
+                builder: (context, child) => Opacity(
+                  opacity: _controlsOpacity.value,
+                  child: PlayerControls(
+                    controller: _controller,
+                    video: widget.playlist[_currentIndex],
+                    isLocked: _isLocked,
+                    isFullscreen: _isFullscreen,
+                    onPlayPause: () {
+                      _controller.value.isPlaying
+                          ? _controller.pause()
+                          : _controller.play();
+                      _startHideTimer();
+                      setState(() {});
+                    },
+                    onNext: _playNext,
+                    onPrevious: _playPrevious,
+                    onBack: () => Navigator.pop(context),
+                    onLock: () => setState(() => _isLocked = !_isLocked),
+                    onFullscreen: () => setState(() => _isFullscreen = !_isFullscreen),
+                    onSeek: (pos) {
+                      _controller.seekTo(pos);
+                      _startHideTimer();
+                    },
+                  ),
+                ),
+              ),
             if (_showBrightnessOverlay)
-              _buildSideOverlay(
-                icon: Icons.brightness_6,
-                value: _brightness,
-                isLeft: true,
-              ),
-
-            // Volume overlay
+              _buildSideOverlay(icon: Icons.brightness_6, value: _brightness, isLeft: true),
             if (_showVolumeOverlay)
-              _buildSideOverlay(
-                icon: Icons.volume_up,
-                value: _volume,
-                isLeft: false,
-              ),
-
-            // Seek overlay
+              _buildSideOverlay(icon: Icons.volume_up, value: _volume, isLeft: false),
             if (_showSeekOverlay)
               Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(12),
@@ -256,9 +238,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        _seekSeconds > 0
-                            ? Icons.fast_forward
-                            : Icons.fast_rewind,
+                        _seekSeconds > 0 ? Icons.fast_forward : Icons.fast_rewind,
                         color: AppTheme.primaryColor,
                         size: 24,
                       ),
@@ -287,7 +267,6 @@ class _PlayerScreenState extends State<PlayerScreen>
         child: CircularProgressIndicator(color: AppTheme.primaryColor),
       );
     }
-
     return Center(
       child: AspectRatio(
         aspectRatio: _controller.value.aspectRatio,
@@ -296,11 +275,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  Widget _buildSideOverlay({
-    required IconData icon,
-    required double value,
-    required bool isLeft,
-  }) {
+  Widget _buildSideOverlay({required IconData icon, required double value, required bool isLeft}) {
     return Positioned(
       left: isLeft ? 24 : null,
       right: isLeft ? null : 24,
@@ -325,19 +300,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                   child: LinearProgressIndicator(
                     value: value,
                     backgroundColor: Colors.white24,
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
                   ),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 '${(value * 100).round()}%',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
               ),
             ],
           ),
