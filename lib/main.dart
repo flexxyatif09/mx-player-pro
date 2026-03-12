@@ -1,4 +1,4 @@
-pimport 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -6,21 +6,17 @@ import 'package:provider/provider.dart';
 
 import 'providers/media_provider.dart';
 import 'providers/player_provider.dart';
-import 'providers/theme_provider.dart';
 import 'screens/splash_screen.dart';
 import 'utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive
   await Hive.initFlutter();
   await Hive.openBox('settings');
   await Hive.openBox('history');
   await Hive.openBox('favorites');
-  await Hive.openBox('playlists');
 
-  // Set orientation
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -28,7 +24,6 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Status bar style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -39,28 +34,25 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => MediaProvider()),
         ChangeNotifierProvider(create: (_) => PlayerProvider()),
       ],
-      child: const MXPlayerApp(),
+      child: const FlexxPlayerApp(),
     ),
   );
 }
 
-class MXPlayerApp extends StatelessWidget {
-  const MXPlayerApp({super.key});
+class FlexxPlayerApp extends StatelessWidget {
+  const FlexxPlayerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
     return GetMaterialApp(
       title: 'FlexX Player',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: themeProvider.themeMode,
+      themeMode: ThemeMode.dark,
       home: const SplashScreen(),
     );
   }
