@@ -72,45 +72,13 @@ jobs:
               - assets/animations/
           EOF
 
-      - name: Fix Kotlin Duplicate Issue
+      - name: Fix Kotlin Version
         working-directory: fresh_app
         run: |
-          cat > android/build.gradle << 'EOF'
-          buildscript {
-              ext.kotlin_version = '1.9.0'
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.0'
-                  classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-              }
-          }
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              configurations.all {
-                  resolutionStrategy {
-                      force "org.jetbrains.kotlin:kotlin-stdlib:1.9.0"
-                      force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.0"
-                      force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0"
-                  }
-              }
-          }
-          rootProject.buildDir = '../build'
-          subprojects {
-              project.buildDir = "${rootProject.buildDir}/${project.name}"
-          }
-          subprojects {
-              project.evaluationDependsOn(':app')
-          }
-          tasks.register("clean", Delete) {
-              delete rootProject.buildDir
-          }
-          EOF
+          sed -i "s/ext.kotlin_version = '1.7.10'/ext.kotlin_version = '1.8.22'/" android/build.gradle
+          sed -i "s/ext.kotlin_version = '1.8.0'/ext.kotlin_version = '1.8.22'/" android/build.gradle
+          sed -i "s/ext.kotlin_version = '1.9.0'/ext.kotlin_version = '1.8.22'/" android/build.gradle
+          cat android/build.gradle
 
       - name: Get Dependencies
         working-directory: fresh_app
