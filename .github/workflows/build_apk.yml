@@ -27,29 +27,41 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Get Flutter Dependencies
+      - name: Create Fresh Flutter Project
+        run: |
+          flutter create --org com.mxplayer --project-name mx_player_pro fresh_app
+          
+      - name: Copy Our Source Files
+        run: |
+          cp pubspec.yaml fresh_app/pubspec.yaml
+          rm -rf fresh_app/lib
+          cp -r lib fresh_app/lib
+          mkdir -p fresh_app/assets/images
+          mkdir -p fresh_app/assets/icons
+          mkdir -p fresh_app/assets/animations
+
+      - name: Get Dependencies
+        working-directory: fresh_app
         run: flutter pub get
 
-      - name: Create Required Directories
-        run: |
-          mkdir -p assets/images assets/icons assets/animations assets/fonts
-
       - name: Build Debug APK
+        working-directory: fresh_app
         run: flutter build apk --debug --target-platform android-arm,android-arm64
 
       - name: Build Release APK
+        working-directory: fresh_app
         run: flutter build apk --release --target-platform android-arm,android-arm64
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: MXPlayerPro-Debug-v${{ github.run_number }}
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          path: fresh_app/build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: MXPlayerPro-Release-v${{ github.run_number }}
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: fresh_app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
